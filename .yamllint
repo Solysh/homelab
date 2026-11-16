@@ -1,0 +1,13 @@
+# Kometa configs follow Kometa's own docs style, so keep the checks to
+# real problems: syntax errors, duplicate keys, bad indentation of lists.
+extends: relaxed
+rules:
+  line-length: disable
+  document-start: disable
+  trailing-spaces: disable
+  new-line-at-end-of-file: disable
+  comments: disable
+  comments-indentation: disable
+  indentation:
+    spaces: consistent
+    indent-sequences: whatever
