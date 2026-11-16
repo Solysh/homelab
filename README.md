@@ -17,6 +17,7 @@ Every key, token, and address has been replaced with a placeholder. Nothing here
 | `anime-ratings.yml` | Age ratings from MyAnimeList for anime that Common Sense Media doesn't rate |
 | `anime-ratings2.yml` | Hand-set ratings for anime that neither source covers |
 | `tv-ratings.yml` | Hand-set ratings for TV shows that Common Sense Media doesn't cover |
+| `anime-ratings-fetch.py` | Generates `anime-ratings.yml` from MAL ratings via mapping.animemap.dev (see [below](#anime-ratings-fetchpy)) |
 | `monthly-health.sh` | Monthly server health check with one summary notification |
 | `orphan-assets-report.sh` | Read-only report of artwork folders whose movie or show is gone |
 | `weekly-offsite.sh` | Weekly encrypted copy of the newest appdata backup to Dropbox |
@@ -54,7 +55,7 @@ Each library writes an undo file (`*_Backup.yml`) before changing ratings. Those
 
 ## Scripts
 
-All three run on Unraid and report through Unraid's built-in notification script, which can forward to Discord or any other agent you've set up. Run them on a schedule, for example with the User Scripts plugin.
+The three Bash scripts run on Unraid and report through Unraid's built-in notification script, which can forward to Discord or any other agent you've set up. Run them on a schedule, for example with the User Scripts plugin.
 
 ### `monthly-health.sh`
 
@@ -100,6 +101,16 @@ It needs an rclone config with a crypt remote of that name. Test it without chan
 DRY=1 bash /boot/config/plugins/rclone/weekly-offsite.sh
 ```
 
+### `anime-ratings-fetch.py`
+
+A workaround from when Kometa's MyAnimeList lookups broke (the Jikan API went offline). It reads AniDB IDs from Kometa's own logs, looks up each show's MAL rating through [mapping.animemap.dev](https://mapping.animemap.dev), converts it to the numeric age scale, and writes a Kometa metadata file. Anything it can't resolve is listed for you to handle by hand rather than guessed.
+
+Run it inside the Kometa container (the Unraid host has no Python):
+
+```bash
+docker exec Kometa python3 /config/anime-ratings-fetch.py /config/logs /config/anime-ratings.yml
+```
+
 ## Placeholders
 
 Replace these before using the files:
@@ -123,7 +134,6 @@ The `mal: authorization:` block in `config.yml` is empty on purpose. Kometa fill
 - Paths such as `/mnt/user/appdata/...` and `/boot/config/plugins/...` are Unraid defaults. Change them if your shares are laid out differently.
 - Library names (`Movies`, `TV Shows`, `TV Shows - Anime`) must match the names in your Plex server.
 - The Radarr and Sonarr quality profiles and root folders in `config.yml` are specific to this setup.
-- `anime-ratings.yml` mentions a generator script, `anime-ratings-fetch.py`. It isn't included here.
 
 ## License
 
