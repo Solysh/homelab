@@ -21,6 +21,12 @@ Every key, token, and address has been replaced with a placeholder. Nothing here
 | `orphan-assets-report.sh` | Read-only report of artwork folders whose movie or show is gone |
 | `weekly-offsite.sh` | Weekly encrypted copy of the newest appdata backup to Dropbox |
 
+## Docs
+
+- [Network](docs/network.md): networks, firewall approach, DNS filtering, reverse proxy and remote access
+- [Nightly schedule](docs/nightly-schedule.md): the order of the overnight jobs, and the Plex database corruption that set it
+- [Backups](docs/backups.md): daily, semi-monthly and offsite backup tiers
+
 ## Kometa setup
 
 ### Content ratings
