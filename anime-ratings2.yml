@@ -1,0 +1,19 @@
+# Content ratings for the shows neither Common Sense Media nor MAL covers.
+#
+# These are the gaps left after:
+#   - plex_csm in the mass_metadata_update source chain (covers 23 shows)
+#   - anime-ratings.yml, sourced from MAL (covers 27 shows)
+#
+# Values follow CSM's granular age scale rather than MAL's coarse one.
+#
+#   2 = all ages | 7 = children | 13 = teens | 17 = 17+ | 18 = adults only
+
+metadata:
+  "Burn-Up W":
+    content_rating: 17
+
+  "Cells at Work!":
+    content_rating: 13
+
+  "Star Wars: Visions Presents - The Ninth Jedi":
+    content_rating: 10

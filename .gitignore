@@ -1,0 +1,6 @@
+# Kometa undo files list the full media library
+*_Backup.yml
+# Kometa runtime output
+missing/
+logs/
+*.cache
