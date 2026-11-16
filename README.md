@@ -118,3 +118,7 @@ The `mal: authorization:` block in `config.yml` is empty on purpose. Kometa fill
 - Library names (`Movies`, `TV Shows`, `TV Shows - Anime`) must match the names in your Plex server.
 - The Radarr and Sonarr quality profiles and root folders in `config.yml` are specific to this setup.
 - `anime-ratings.yml` mentions a generator script, `anime-ratings-fetch.py`. It isn't included here.
+
+## License
+
+[MIT](LICENSE). Use and adapt anything here.
