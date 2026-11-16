@@ -1,0 +1,89 @@
+# Anime content ratings from MAL via mapping.animemap.dev.
+#
+# TRIMMED: only the shows Common Sense Media could not rate. Titles CSM
+# already covers were removed so the plex_csm operation keeps its finer-
+# grained age values instead of being overwritten by MAL's coarser scale.
+#
+# Regenerating with anime-ratings-fetch.py rewrites the full 48 and undoes
+# this trim.
+#
+#   2 = all ages | 7 = children | 13 = teens | 17 = 17+ | 18 = adults only
+
+metadata:
+  "Akashic Records of Bastard Magic Instructor":
+    content_rating: 17   # R - 17+ (violence & profanity)
+
+  "Apocalypse Hotel":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Bubblegum Crisis":
+    content_rating: 17   # R+ - Mild Nudity
+
+  "Call of the Night":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Campfire Cooking in Another World with My Absurd Skill":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Clevatess":
+    content_rating: 17   # R - 17+ (violence & profanity)
+
+  "Dr. STONE":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Fist of the North Star: HOKUTO NO KEN":
+    content_rating: 17   # R - 17+ (violence & profanity)
+
+  "Flying Witch":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Frieren: Beyond Journey's End":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "From Old Country Bumpkin to Master Swordsman":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Gargantia on the Verdurous Planet":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Kaiju No. 8":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "MASHLE: MAGIC AND MUSCLES":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Restaurant to Another World":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Romantic Killer":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "SPY x FAMILY":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "Summer Time Rendering":
+    content_rating: 17   # R - 17+ (violence & profanity)
+
+  "Terror in Resonance":
+    content_rating: 17   # R - 17+ (violence & profanity)
+
+  "That Time I Got Reincarnated as a Slime":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "The Brilliant Healer's New Life in the Shadows":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "The Ossan Newbie Adventurer, Trained to Death by the Most Powerful Party, Became Invincible":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "The Unwanted Undead Adventurer":
+    content_rating: 13   # PG-13 - Teens 13 or older
+
+  "The Witch and the Beast":
+    content_rating: 17   # R - 17+ (violence & profanity)
+
+  "Tonari no Seki-kun: The Master of Killing Time":
+    content_rating: 7   # PG - Children
+
+  "Welcome to Demon School! Iruma-kun":
+    content_rating: 13   # PG-13 - Teens 13 or older

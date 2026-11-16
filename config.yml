@@ -1,0 +1,267 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kometa-team/kometa/nightly/json-schema/config-schema.json
+## Do not remove the above line
+## This file is a template remove the .template to use the file
+
+## Plex and TMDb are the two connections which are required for the script to run
+
+plex:                              # Can be individually specified per library as well; REQUIRED for the script to run
+  url: http://YOUR_SERVER_IP:32400  # Enter Plex URL (REQUIRED); this needs to point to your server, not app.plex.tv
+  token: YOUR_PLEX_TOKEN           # Enter Plex Token (REQUIRED)
+  timeout: 180
+  db_cache: 8192
+  clean_bundles: false
+  empty_trash: false
+  optimize: false
+  verify_ssl: true
+tmdb:
+  apikey: YOUR_TMDB_API_KEY # Enter TMDb API Key (REQUIRED)
+  cache_expiration: 60
+  language: en
+  region:
+
+libraries:                         # This is called out once within the config.yml file
+  Movies:                          # These are names of libraries in your Plex
+    report_path: config/missing/Movies_missing.yml
+    remove_overlays: false         # Set this to true to remove all overlays
+    settings:
+      asset_directory:
+      - config/assets/Movies
+    collection_files:
+    - default: basic               # This is a file within Kometa's defaults folder
+    - default: imdb                # This is a file within Kometa's defaults folder
+    - default: seasonal                                 # Christmas, Halloween, etc.
+      template_variables:                           # Disable any US-specific seasonal collections
+        schedule_independence: never
+        schedule_thanksgiving: never
+        schedule_memorial: never
+        schedule_labor: never
+    - default: universe            # Marvel Cinematic Universe, Wizarding World, etc.   
+    - file: config/kids-movies.yml
+    overlay_files:
+    - default: resolution
+      template_variables:
+        use_576p: false
+    - default: audio_codec
+    - default: ratings
+    - default: ribbon              # This is a file within Kometa's defaults folder    
+    operations:
+      assets_for_all: true
+      ignore_labels:                     # NEW: protects manual fixes
+      - Manual Metadata
+      mass_metadata_update:
+        backup:                          # NEW: your undo file
+          path: config/Movies_Backup.yml
+        content_rating:
+          source:
+          - plex_csm
+            # - NR    
+
+  TV Shows - Anime:
+    report_path: config/missing/Anime_missing.yml
+    remove_overlays: false         # Set this to true to remove all overlays  
+    metadata_files:
+    - file: config/anime-ratings.yml
+    - file: config/anime-ratings2.yml
+    settings:
+      asset_directory:
+      - config/assets/TV Shows - Anime
+    # schedule_overlays: weekly(sunday)
+    collection_files:
+    - default: basic             # This is a file within Kometa's defaults folder
+    - default: anilist           # This is a file within Kometa's defaults folder
+    # - default: content_rating_mal
+    # - file: config/kids-anime.yml    
+    overlay_files:
+    - default: status
+    - default: ribbon
+    - default: resolution                                                    # 1
+      template_variables:
+        builder_level: episode
+    - default: audio_codec                                                   # 2
+      template_variables:
+        builder_level: episode
+    - default: video_format                                                  # 5
+      template_variables:
+        builder_level: episode
+    - default: episode_info                                                  # 6
+      template_variables:
+        builder_level: episode
+    - default: runtimes                                                      # 7
+      template_variables:
+        builder_level: episode
+    operations:
+      assets_for_all: true
+      ignore_labels:
+      - Manual Metadata
+      mass_metadata_update:
+        backup:
+          path: config/Anime_Backup.yml
+        content_rating:
+          source:
+          - plex_csm
+          - mal
+          # - NR
+          mappings:
+            G - All Ages: '2'
+            PG - Children: '7'
+            PG-13 - Teens 13 or older: '13'
+            R - 17+ (violence & profanity): '17'
+            R+ - Mild Nudity: '17'
+
+  TV Shows:
+    report_path: config/missing/TV_missing.yml
+    remove_overlays: false         # Set this to true to remove all overlays 
+    metadata_files:
+    - file: config/tv-ratings.yml
+    settings:
+      asset_directory:
+      - config/assets/TV Shows
+    # schedule_overlays: weekly(sunday)
+    collection_files:
+    - default: basic               # This is a file within Kometa's defaults folder
+    - default: imdb                # This is a file within Kometa's defaults folder
+    - file: config/kids-tv.yml
+    overlay_files:
+    - default: status
+    - default: ribbon
+    - default: resolution                                                    # 1
+      template_variables:
+        builder_level: episode
+    - default: audio_codec                                                   # 2
+      template_variables:
+        builder_level: episode
+    - default: video_format                                                  # 5
+      template_variables:
+        builder_level: episode
+    - default: episode_info                                                  # 6
+      template_variables:
+        builder_level: episode
+    - default: runtimes                                                      # 7
+      template_variables:
+        builder_level: episode
+    operations:
+      assets_for_all: true
+      ignore_labels:
+      - Manual Metadata
+      mass_metadata_update:
+        backup:
+          path: config/TV_Backup.yml
+        content_rating:
+          source:
+          - plex_csm
+            # - NR                          
+
+settings:
+  run_order:
+  - operations
+  - metadata
+  - collections
+  - overlays
+  cache: true
+  cache_expiration: 60
+  asset_directory:
+  - config/assets
+  asset_folders: true
+  asset_depth: 0
+  create_asset_folders: false
+  prioritize_assets: true
+  dimensional_asset_rename: false
+  download_url_assets: false
+  show_missing_season_assets: false
+  show_missing_episode_assets: false
+  show_asset_not_needed: true
+  sync_mode: sync
+  minimum_items: 1
+  default_collection_order: release
+  delete_below_minimum: true
+  delete_not_scheduled: true
+  # auto_sort_hubs: sort_title  # Options: sort_title, sort_title.desc, alpha, alpha.desc, configured, configured.desc, random
+  run_again_delay: 2
+  missing_only_released: true
+  only_filter_missing: false
+  show_unmanaged: true
+  show_unconfigured: true
+  show_filtered: false
+  show_unfiltered: false
+  show_options: true
+  show_missing: true
+  show_missing_assets: false
+  save_report: true
+  tvdb_language: eng
+  ignore_ids:
+  ignore_imdb_ids:
+  item_refresh_delay: 0
+  playlist_sync_to_users:
+  playlist_exclude_users:
+  playlist_report: false
+  verify_ssl: true
+  custom_repo:
+  overlay_artwork_filetype: webp_lossy
+  overlay_artwork_quality: 90
+  auto_sort_hubs:
+webhooks:                          # Can be individually specified per library as well
+  error: apprise
+  version: apprise
+  run_start: apprise
+  run_end: apprise
+  delete: apprise
+  changes: apprise
+tautulli:                          # Can be individually specified per library as well
+  url: http://YOUR_SERVER_IP:8181   # Enter Tautulli URL (Optional)
+  apikey: YOUR_TAUTULLI_API_KEY # Enter Tautulli API Key (Optional)
+github:
+  token:                           # Enter GitHub Personal Access Token (Optional)
+mdblist:
+  apikey: YOUR_MDBLIST_API_KEY # Enter MDBList API Key (Optional)
+  cache_expiration: 60
+apprise:
+  config: /config/apprise.yml
+anidb:
+  cache_expiration: 60
+  language: en
+  enable_mature: false
+radarr:                            # Can be individually specified per library as well
+  url: http://YOUR_SERVER_IP:7878    # Enter Radarr server URL (Optional)
+  token: YOUR_RADARR_API_KEY # Enter Radarr API Key (Optional)
+  add_missing: false
+  add_existing: false
+  upgrade_existing: false
+  monitor_existing: false
+  root_folder_path: /movies/Movies # This value is CASE SENSITIVE
+  monitor: true
+  availability: released
+  quality_profile: HD Bluray + WEB # This value is CASE SENSITIVE
+  tag: kometa
+  search: true
+  radarr_path:                    # This value is only needed in combination with the *_existing settings
+  plex_path:                      # This value is only needed in combination with the *_existing settings
+  ignore_cache: false
+sonarr:                            # Can be individually specified per library as well
+  url: http://YOUR_SERVER_IP:8989    # Enter Sonarr server URL (Optional)
+  token: YOUR_SONARR_API_KEY # Enter Sonarr API Key (Optional)
+  add_missing: false
+  add_existing: false
+  upgrade_existing: false
+  monitor_existing: false
+  root_folder_path: /tv/TV Shows    # This value is CASE SENSITIVE
+  monitor: all
+  quality_profile: WEB-1080p (Alternative) # This value is CASE SENSITIVE
+  language_profile: English
+  series_type: standard
+  season_folder: true
+  tag: kometa
+  search: true
+  cutoff_search: true
+  sonarr_path:                     # This value is only needed in combination with the *_existing settings
+  plex_path:                       # This value is only needed in combination with the *_existing settings
+  ignore_cache: false
+mal:
+  client_id: YOUR_MAL_CLIENT_ID # Enter MyAnimeList Client ID (Optional)
+  client_secret: YOUR_MAL_CLIENT_SECRET # Enter MyAnimeList Client Secret (Optional)
+  cache_expiration: 60
+  localhost_url: https://utilities.kometa.wiki/mal-oauth/callback
+  authorization:                                   # authorization section is autofilled by the script
+    access_token:
+    token_type:
+    expires_in:
+    refresh_token:

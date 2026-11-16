@@ -1,0 +1,17 @@
+# Content ratings for TV Shows titles Common Sense Media does not cover.
+# Moved from anime-ratings2.yml on 2026-10-30.
+#
+#   CSM-style ages
+
+metadata:
+  "Hammer and Bolter":
+    content_rating: 14
+
+  "Scavengers Reign":
+    content_rating: 16
+
+  "The Cuphead Show!":
+    content_rating: 8
+
+  "The Dragon Prince":
+    content_rating: 10
