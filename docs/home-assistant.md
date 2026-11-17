@@ -40,3 +40,15 @@ Make the change in the VM's XML view, and re-check it after editing the VM in fo
 ## Backups
 
 Home Assistant's own backup (Settings > System > Backups) writes to the `ha-backups` share over SMB. That share is on the array, not the cache, and is outside the appdata backup.
+
+## Configuration
+
+Most configuration is managed through the UI and stored in `.storage/`, which isn't tracked here. The YAML files are:
+
+- `configuration.yaml`: stock (`default_config`, themes folder), with automations, scripts and scenes split into their own files via `!include`.
+- `scripts.yaml`, `scenes.yaml`: empty.
+- `automations.yaml`: one automation, below.
+
+### Automations
+
+**Garage door open at night.** Sends a Pushover notification (priority 1) if the garage door sensor is on at 22:00, or if the door is opened between 22:00 and 06:00 and stays open for 10 minutes. It repeats every 15 minutes until the door closes. Mode is `single`, so a running reminder loop isn't duplicated.
