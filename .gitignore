@@ -4,3 +4,11 @@
 missing/
 logs/
 *.cache
+
+# Real values: never commit (this repo is public)
+private/
+*.local.*
+.env
+*.env
+*.key
+*.pem
