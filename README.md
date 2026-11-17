@@ -143,6 +143,7 @@ The `mal: authorization:` block in `config.yml` is empty on purpose. Kometa fill
 - Paths such as `/mnt/user/appdata/...` and `/boot/config/plugins/...` are Unraid defaults. Change them if your shares are laid out differently.
 - Library names (`Movies`, `TV Shows`, `TV Shows - Anime`) must match the names in your Plex server.
 - The Radarr and Sonarr quality profiles and root folders in `config.yml` are specific to this setup.
+- GitHub Actions lint the repo on every push (ShellCheck, yamllint, Ruff) and scan it for secrets with gitleaks. Dependabot opens monthly PRs to update the actions.
 
 ## License
 
