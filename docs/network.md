@@ -14,6 +14,24 @@ UniFi gateway, managed switch and Wi-Fi APs. The default posture is **block all 
 
 Each user-facing network has its own SSID.
 
+## Server networking
+
+The Unraid server's two NICs are bonded and carry a tagged VLAN for IoT.
+
+| Interface | What it is | Used by |
+|---|---|---|
+| `bond0` | `eth0` + `eth1`, bonding mode 4 (802.3ad/LACP), MII monitoring every 100 ms; address by DHCP | Unraid itself, Plex (host network), AdGuard Home (own IP) |
+| `bond0.4` | VLAN 4 (IoT) on top of the bond | Home Assistant VM |
+| `terranet` | User-defined Docker bridge network | All other containers |
+
+The switch ports for `eth0` and `eth1` are configured as one LACP aggregate, with VLAN 4 tagged on it.
+
+### Docker networks
+
+- **`terranet`:** a custom bridge, so containers resolve each other by name and Nginx Proxy Manager can forward to `http://<container>:<port>` without exposing those ports anywhere else. Unraid's "preserve user-defined networks" setting is on, so it survives Docker restarts.
+- **AdGuard Home on `bond0`:** Unraid's custom network on the bond gives the container its own LAN IP (`YOUR_ADGUARD_IP`). DNS on port 53 then doesn't clash with anything on the host, and DHCP hands that IP out as the DNS server.
+- **Plex on host:** for local network discovery.
+
 ## Firewall approach
 
 Zone-based firewall. Trusted and Kids sit in an internal zone; IoT sits in an untrusted zone so cheap devices can't reach anything else. Allowed exceptions are narrow, single-port policies, for example:
@@ -35,6 +53,22 @@ Zone-based firewall. Trusted and Kids sit in an internal zone; IoT sits in an un
 - Ports 80/443 are forwarded **only from Cloudflare's published IP ranges**, so public web services are reachable only through Cloudflare.
 - Most hosts use an NPM access list that allows private ranges only. They're reachable remotely through the VPN, not the internet.
 - Only a couple of services (audiobooks, media requests) are public.
+
+Proxy hosts (every host forces HTTPS, uses HTTP/2, websockets and NPM's "block common exploits"):
+
+| Service | Upstream | Access |
+|---|---|---|
+| Seerr | `seerr:5055` | Public |
+| audiobookshelf | server IP, port 13378 | Public |
+| Sonarr | `sonarr:8989` | Private ranges only |
+| Radarr | `radarr:7878` | Private ranges only |
+| Prowlarr | `prowlarr:9696` | Private ranges only |
+| NZBGet | `nzbget:6789` | Private ranges only |
+| Tracearr | `tracearr-supervised:3000` | Private ranges only |
+| Unraid web UI | server IP, port 8443 | Private ranges only |
+| Home Assistant | VM's IP on the IoT network, port 80 | Private ranges only |
+
+Containers on `terranet` are addressed by name; anything else by IP. See [Containers](containers.md) for ports.
 
 ## Remote access
 

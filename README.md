@@ -3,7 +3,8 @@
 Config files and maintenance scripts for a Plex media server running on Unraid.
 
 - **Kometa config** for three Plex libraries (Movies, TV Shows, TV Shows - Anime): collections, overlays, and age-based content ratings.
-- **Three Bash scripts** for Unraid: a monthly health check, an orphaned-artwork report, and a weekly encrypted offsite backup.
+- **Bash scripts** for Unraid: a monthly health check, an orphaned-artwork report, a weekly encrypted offsite backup, and three small maintenance scripts.
+- **Docs** for the containers, network, Home Assistant VM, schedules and backups.
 
 Every key, token, and address has been replaced with a placeholder. Nothing here works until you fill in your own values (see [Placeholders](#placeholders)).
 
@@ -21,11 +22,16 @@ Every key, token, and address has been replaced with a placeholder. Nothing here
 | `monthly-health.sh` | Monthly server health check with one summary notification |
 | `orphan-assets-report.sh` | Read-only report of artwork folders whose movie or show is gone |
 | `weekly-offsite.sh` | Weekly encrypted copy of the newest appdata backup to Dropbox |
+| `apm-fix.sh` | Sets drive APM to 254 at array start, so drives stop parking their heads constantly |
+| `delete-dangling-images.sh` | Removes untagged Docker images left by updates |
+| `docker-log-size.sh` | Lists the largest container log files |
 
 ## Docs
 
-- [Network](docs/network.md): networks, firewall approach, DNS filtering, reverse proxy and remote access
-- [Nightly schedule](docs/nightly-schedule.md): the order of the overnight jobs, and the Plex database corruption that set it
+- [Containers](docs/containers.md): the 17 running containers with image, network, ports, paths and settings
+- [Network](docs/network.md): networks, server bond and VLAN, Docker networks, firewall approach, DNS filtering, reverse proxy and remote access
+- [Home Assistant](docs/home-assistant.md): the Home Assistant OS VM and how it's isolated
+- [Nightly schedule](docs/nightly-schedule.md): the order of the overnight jobs, User Scripts schedules, and the Plex database corruption that set them
 - [Backups](docs/backups.md): daily, semi-monthly and offsite backup tiers
 
 ## Kometa setup
@@ -55,7 +61,7 @@ Each library writes an undo file (`*_Backup.yml`) before changing ratings. Those
 
 ## Scripts
 
-The three Bash scripts run on Unraid and report through Unraid's built-in notification script, which can forward to Discord or any other agent you've set up. Run them on a schedule, for example with the User Scripts plugin.
+The Bash scripts run on Unraid. The three main ones and report through Unraid's built-in notification script, which can forward to Discord or any other agent you've set up. Run them on a schedule, for example with the User Scripts plugin (schedules in [Nightly schedule](docs/nightly-schedule.md#user-scripts)).
 
 ### `monthly-health.sh`
 
@@ -126,6 +132,9 @@ Replace these before using the files:
 | `YOUR_SONARR_API_KEY` | `config.yml` | Sonarr API key |
 | `YOUR_MAL_CLIENT_ID`, `YOUR_MAL_CLIENT_SECRET` | `config.yml` | MyAnimeList API client |
 | `YOUR_WEBHOOK_ID`, `YOUR_WEBHOOK_TOKEN` | `apprise.yml` | The two parts of a Discord webhook URL |
+| `YOUR_ADGUARD_IP` | `docs/containers.md`, `docs/network.md` | Fixed LAN IP for the AdGuard Home container |
+| `YOUR_NZBGET_USER`, `YOUR_NZBGET_PASSWORD` | `docs/containers.md` | NZBGet web UI login |
+| `YOUR_PLEX_CLAIM` | `docs/containers.md` | Claim token from plex.tv/claim (first start only) |
 
 The `mal: authorization:` block in `config.yml` is empty on purpose. Kometa fills it in after you authorize MyAnimeList.
 
