@@ -9,6 +9,22 @@
 | 05:00 to 08:00 | Plex scheduled tasks window | |
 | 08:30 | Kometa (`--low-priority`) | ~90 min |
 
+## User Scripts
+
+Run by the User Scripts plugin. The three repo scripts are installed under `/boot/config/plugins/...`, and each User Script is a one-line wrapper that calls it.
+
+| Script | Schedule | Repo file |
+|---|---|---|
+| `monthly-health` | 1st of the month, 12:00 (`0 12 1 * *`) | [`monthly-health.sh`](../monthly-health.sh) |
+| `orphan-assets-report` | 15th of the month, 11:00 (`0 11 15 * *`) | [`orphan-assets-report.sh`](../orphan-assets-report.sh) |
+| `offsite-backup` | Sundays 02:45 (`45 2 * * 0`) | [`weekly-offsite.sh`](../weekly-offsite.sh) |
+| `APM Fix` | At array start | [`apm-fix.sh`](../apm-fix.sh) |
+| `delete_dangling_images` | Weekly | [`delete-dangling-images.sh`](../delete-dangling-images.sh) |
+| `viewDockerLogSize` | Weekly | [`docker-log-size.sh`](../docker-log-size.sh) |
+| `delete.ds_store` | Weekly | none (deletes macOS `.DS_Store` files under `/mnt/user`; stock community script) |
+| `fix_docker_client` | Disabled | none (old fix for Unraid 6.7's update check; not needed since 6.8) |
+| `unlock nvidia` | Disabled | none (third-party NVIDIA encode-session patch) |
+
 ## Why this order
 
 - **Posterizarr before Kometa**, so fresh artwork is on disk when Kometa applies assets and overlays.
