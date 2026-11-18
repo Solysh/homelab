@@ -49,7 +49,7 @@ The switch ports for `eth0` and `eth1` are configured as one LACP aggregate, wit
 
 Zone-based firewall. Trusted and Kids sit in an internal zone; IoT sits in an untrusted zone so cheap devices can't reach anything else. The default between zones is block, and Kids is also isolated from every other internal network. Allowed exceptions are narrow policies, for example:
 
-- Kids to Plex on TCP 32400, scheduled for weekends only (a Plex app block covers Monday to Thursday)
+- Kids to Plex on TCP 32400, scheduled for Friday to Sunday only (a Plex app block covers Monday to Thursday)
 - Kids to the two IoT printers, and nothing else on IoT
 - Home Assistant to the server's SMB port, for its backup share
 - IoT to the gateway on DNS, DHCP, NTP and mDNS ports plus ICMP, then everything else to the gateway is blocked
@@ -107,7 +107,7 @@ WireGuard server on the gateway (chosen over Tailscale). Phones connect on deman
 ## Switching and APs
 
 - The 24-port switch is the STP root. A 10G SFP+ link joins it to the gateway.
-- The server's two ports form one LACP aggregate with the IoT VLAN tagged on it (the only trunk to a host). Ordinary device ports are edge ports with BPDU guard.
+- The server's two ports form one LACP aggregate with only the IoT VLAN tagged on it (the only host port that carries a tagged VLAN). Ordinary device ports are edge ports with BPDU guard and every tagged VLAN blocked, so a wired device can't reach another network by tagging it. Unused ports have no network.
 - The hub ports for the lighting systems sit on the IoT network. AP uplinks use a management profile.
 - The gateway and switch keep IGMP snooping on, with the switch as querier.
 
