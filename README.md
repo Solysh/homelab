@@ -29,7 +29,7 @@ Every key, token, and address has been replaced with a placeholder. Nothing here
 ## Docs
 
 - [Containers](docs/containers.md): the 17 running containers with image, network, ports, paths and settings
-- [Network](docs/network.md): networks, server bond and VLAN, Docker networks, firewall approach, DNS filtering, reverse proxy and remote access
+- [Network](docs/network.md): networks, Wi-Fi, server bond and VLAN, Docker networks, firewall approach, DNS filtering, reverse proxy, remote access, threat management, switching and console settings
 - [Home Assistant](docs/home-assistant.md): the Home Assistant OS VM and how it's isolated
 - [Nightly schedule](docs/nightly-schedule.md): the order of the overnight jobs, User Scripts schedules, and the Plex database corruption that set them
 - [Backups](docs/backups.md): daily, semi-monthly and offsite backup tiers
