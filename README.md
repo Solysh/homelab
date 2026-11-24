@@ -123,7 +123,7 @@ Replace these before using the files:
 
 | Placeholder | Where | What to put |
 | --- | --- | --- |
-| `YOUR_SERVER_IP` | `config.yml`, `monthly-health.sh` | LAN IP of your server |
+| `YOUR_SERVER_IP` | `config.yml`, `monthly-health.sh`, `docs/containers.md` | LAN IP of your server |
 | `YOUR_PLEX_TOKEN` | `config.yml` | Plex token |
 | `YOUR_TMDB_API_KEY` | `config.yml` | TMDb API key |
 | `YOUR_TAUTULLI_API_KEY` | `config.yml` | Tautulli API key |
