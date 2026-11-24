@@ -16,6 +16,7 @@ Run by the User Scripts plugin. The three repo scripts are installed under `/boo
 | Script | Schedule | Repo file |
 |---|---|---|
 | `monthly-health` | 1st of the month, 12:00 (`0 12 1 * *`) | [`monthly-health.sh`](../monthly-health.sh) |
+| `log-alerts` | Every 5 minutes (`*/5 * * * *`) | [`log-alerts.sh`](../log-alerts.sh) |
 | `orphan-assets-report` | 15th of the month, 11:00 (`0 11 15 * *`) | [`orphan-assets-report.sh`](../orphan-assets-report.sh) |
 | `offsite-backup` | Sundays 02:45 (`45 2 * * 0`) | [`weekly-offsite.sh`](../weekly-offsite.sh) |
 | `APM Fix` | At array start | [`apm-fix.sh`](../apm-fix.sh) |

@@ -20,6 +20,7 @@ Every key, token, and address has been replaced with a placeholder. Nothing here
 | `tv-ratings.yml` | Hand-set ratings for TV shows that Common Sense Media doesn't cover |
 | `anime-ratings-fetch.py` | Generates `anime-ratings.yml` from MAL ratings via mapping.animemap.dev (see [below](#anime-ratings-fetchpy)) |
 | `monthly-health.sh` | Monthly server health check with one summary notification |
+| `log-alerts.sh` | Every 5 minutes: alerts on security, admin and disk events found in VictoriaLogs, through apprise-api |
 | `orphan-assets-report.sh` | Read-only report of artwork folders whose movie or show is gone |
 | `weekly-offsite.sh` | Weekly encrypted copy of the newest appdata backup to Dropbox |
 | `apm-fix.sh` | Sets drive APM to 254 at array start, so drives stop parking their heads constantly |
@@ -86,6 +87,25 @@ Test it without sending a notification:
 NONOTIFY=1 bash /boot/config/plugins/health-check/monthly-health.sh
 ```
 
+### `log-alerts.sh`
+
+Runs every 5 minutes and queries [VictoriaLogs](docs/containers.md#victoria-logs) for events since its last run, then sends one message through apprise-api (falling back to Unraid's notification script if apprise-api doesn't answer). It alerts on:
+
+- UniFi security events (IPS detections, honeypot hits and similar). Firewall-policy blocks are left out.
+- UniFi admin logins and setting changes. `IGNORE_ADMINS` skips named accounts, such as one used by automation.
+- Disk and I/O errors in the Unraid syslog (ATA errors, medium errors, `md` read/write errors, ZFS checksum errors)
+- One client getting 20 or more 401/403 responses from Nginx Proxy Manager within 10 minutes (once per client per hour)
+- The UniFi syslog going silent for 30 minutes, or no container logs for an hour (Vector stopped)
+- VictoriaLogs not answering for 3 runs in a row (the nightly appdata backup stops it for about a minute)
+
+Each run covers the time since the previous one, so events are not missed or sent twice. If VictoriaLogs is down or a query fails, the window doesn't move forward and the next run catches up. State is kept in `/mnt/user/appdata/log-alerts`.
+
+Settings are at the top and can be overridden with environment variables, so the User Script wrapper can set the real values without editing the script. Test it without sending anything:
+
+```bash
+NONOTIFY=1 STATE_DIR=/tmp/log-alerts-test bash /boot/config/plugins/log-alerts/log-alerts.sh
+```
+
 ### `orphan-assets-report.sh`
 
 Finds Kometa or Posterizarr asset folders whose movie or show no longer has video files on disk, then reports the count and total size. It never moves or deletes anything.
@@ -123,7 +143,9 @@ Replace these before using the files:
 
 | Placeholder | Where | What to put |
 | --- | --- | --- |
-| `YOUR_SERVER_IP` | `config.yml`, `monthly-health.sh`, `docs/containers.md` | LAN IP of your server |
+| `YOUR_SERVER_IP` | `config.yml`, `monthly-health.sh`, `log-alerts.sh`, `docs/containers.md` | LAN IP of your server |
+| `YOUR_APPRISE_KEY` | `log-alerts.sh` | Config key of the apprise-api configuration to notify |
+| `YOUR_GATEWAY_HOSTNAME`, `YOUR_UNRAID_HOSTNAME` | `log-alerts.sh` | Hostnames the UniFi gateway and Unraid use in their syslog |
 | `YOUR_PLEX_TOKEN` | `config.yml` | Plex token |
 | `YOUR_TMDB_API_KEY` | `config.yml` | TMDb API key |
 | `YOUR_TAUTULLI_API_KEY` | `config.yml` | Tautulli API key |

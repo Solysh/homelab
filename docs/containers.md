@@ -252,4 +252,6 @@ Long-term store for all container logs and NPM access logs (from vector), Unraid
 | Post Arguments | `-storageDataPath=/vlogs -retentionPeriod=1y -retention.maxDiskSpaceUsageBytes=20GiB -syslog.listenAddr.udp=:5514 -syslog.listenAddr.tcp=:5514 -syslog.timezone=America/New_York` |
 | Extra Parameters | `--memory=1G` |
 
+Alerts: [`log-alerts.sh`](../README.md#log-alertssh) queries it every 5 minutes and notifies through apprise-api.
+
 Retention: 1 year or 20 GiB, whichever comes first; the oldest data is dropped first. On the gateway: Settings > Control Plane > Integrations > Activity Logging (SIEM server) pointing at `YOUR_SERVER_IP` port 5514.
