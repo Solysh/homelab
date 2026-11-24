@@ -1,6 +1,6 @@
 # Containers
 
-The 17 Docker containers running on the Unraid server, from their Unraid templates. Values that identify the server (IPs, logins, tokens) are left out or shown as placeholders.
+The 19 Docker containers running on the Unraid server, from their Unraid templates. Values that identify the server (IPs, logins, tokens) are left out or shown as placeholders.
 
 ## Conventions
 
@@ -30,6 +30,8 @@ The 17 Docker containers running on the Unraid server, from their Unraid templat
 | sonarr | `lscr.io/linuxserver/sonarr:develop` | terranet | 8989 | yes, LAN/VPN only |
 | tautulli | `tautulli/tautulli` | terranet | 8181 | no |
 | tracearr-supervised | `ghcr.io/connorgallopo/tracearr:supervised` | terranet | 3001:3000 | yes, LAN/VPN only |
+| vector | `timberio/vector:latest-alpine` | terranet | none | no |
+| victoria-logs | `victoriametrics/victoria-logs` | terranet | 9428 (web), 5514/udp+tcp (syslog) | no |
 
 Updates: the Appdata Backup plugin updates each container right after backing it up (see [Nightly schedule](nightly-schedule.md)).
 
@@ -112,9 +114,13 @@ Reverse proxy and TLS for everything web-facing. The appdata folder keeps its ol
 |---|---|
 | `/data` | `/mnt/user/appdata/Nginx-Proxy-Manager-Official/data` |
 | `/etc/letsencrypt` | `/mnt/user/appdata/Nginx-Proxy-Manager-Official/letsencrypt` |
-| `/var/log` | `/tmp/Nginx-Proxy-Manager-Official/var/log` (in RAM, cleared on reboot) |
+| `/var/log` | `/tmp/Nginx-Proxy-Manager-Official/var/log` (in RAM, cleared on reboot; nginx's own log only) |
 | `DB_SQLITE_FILE` | `/data/database.sqlite` |
 | Extra Parameters | `--memory=1G --no-healthcheck` |
+
+Per-host access and error logs are in `/data/logs` (persistent, rotated weekly, 4 weeks kept) and are shipped to victoria-logs by vector.
+
+Real visitor IPs: the sites sit behind Cloudflare, so `data/nginx/custom/server_proxy.conf` (included in every proxy host) sets `real_ip_header CF-Connecting-IP;`. NPM already trusts Cloudflare's ranges, so logs and access lists see the visitor's IP instead of Cloudflare's. The header is only honoured from trusted addresses, so it can't be spoofed by hitting the server directly.
 
 ### nzbget
 
@@ -215,3 +221,35 @@ Plex stream monitoring. The `supervised` image bundles its own PostgreSQL and Re
 | `PG_MAX_MEMORY` | `2GB` |
 | `JWT_SECRET`, `COOKIE_SECRET` | blank (auto-generated) |
 | Extra Parameters | `--restart=unless-stopped --shm-size=512m` |
+
+### vector
+
+Ships logs to victoria-logs:
+
+- Every container's stdout/stderr, labelled with `container_name`, `stream`, `image` and `host`. Reads through the Docker socket (read-only), so new containers are picked up automatically and no template needs a log-driver change. Ships only lines written after it starts. Its own logs are excluded to avoid a feedback loop.
+- Nginx Proxy Manager's access and error log files, as `container_name=npm` with `stream=access` or `stream=error`. Access lines are parsed into `vhost`, `method`, `uri`, `status`, `upstream_status`, `client`, `length`, `user_agent`, `referer` and `upstream`, with the timestamp from the line. Rotated `.gz` files are skipped.
+
+Read checkpoints in `/var/lib/vector` let it resume after a restart without duplicates.
+
+| Container path / setting | Value |
+|---|---|
+| `/var/run/docker.sock` | `/var/run/docker.sock` (read-only) |
+| `/npm-logs` | `/mnt/user/appdata/Nginx-Proxy-Manager-Official/data/logs` (read-only) |
+| `/etc/vector/vector.yaml` | `/mnt/user/appdata/vector/vector.yaml` (read-only) |
+| `/var/lib/vector` | `/mnt/user/appdata/vector/data` |
+| Post Arguments | `--config /etc/vector/vector.yaml` |
+| Extra Parameters | `--memory=256M` |
+
+The config sends to `http://victoria-logs:9428/insert/elasticsearch/` with `VL-Stream-Fields: host,container_name,stream`.
+
+### victoria-logs
+
+Long-term store for all container logs and NPM access logs (from vector), Unraid's own syslog (Settings > Syslog Server > remote server `127.0.0.1` port 5514 UDP; Unraid keeps it only in RAM otherwise) and the UniFi gateway's syslog (firewall, port-forward and system events). The gateway itself keeps only about 24 hours and Docker's rotation keeps about 30 MB per container. Search UI at `http://YOUR_SERVER_IP:9428/select/vmui/`, LAN only with no login, so it isn't proxied. Syslog is on 5514 rather than 514 so it never clashes with Unraid's own syslog server.
+
+| Container path / setting | Value |
+|---|---|
+| `/vlogs` | `/mnt/user/appdata/victoria-logs` |
+| Post Arguments | `-storageDataPath=/vlogs -retentionPeriod=1y -retention.maxDiskSpaceUsageBytes=20GiB -syslog.listenAddr.udp=:5514 -syslog.listenAddr.tcp=:5514 -syslog.timezone=America/New_York` |
+| Extra Parameters | `--memory=1G` |
+
+Retention: 1 year or 20 GiB, whichever comes first; the oldest data is dropped first. On the gateway: Settings > Control Plane > Integrations > Activity Logging (SIEM server) pointing at `YOUR_SERVER_IP` port 5514.
