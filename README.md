@@ -92,13 +92,13 @@ NONOTIFY=1 bash /boot/config/plugins/health-check/monthly-health.sh
 Runs every 5 minutes and queries [VictoriaLogs](docs/containers.md#victoria-logs) for events since its last run, then sends one message through apprise-api (falling back to Unraid's notification script if apprise-api doesn't answer). It alerts on:
 
 - UniFi security events (IPS detections, honeypot hits and similar). Firewall-policy blocks are left out.
-- UniFi admin logins and setting changes. `IGNORE_ADMINS` skips named accounts, such as one used by automation.
+- UniFi admin logins and setting changes, shortened to one line each (e.g. `claude changed firewall policy "Block IoT to Gateway" from <ip>`). `IGNORE_ADMINS` skips named accounts, such as one used by automation.
 - Disk and I/O errors in the Unraid syslog (ATA errors, medium errors, `md` read/write errors, ZFS checksum errors)
 - One client getting 20 or more 401/403 responses from Nginx Proxy Manager within 10 minutes (once per client per hour)
 - The UniFi syslog going silent for 30 minutes, or no container logs for an hour (Vector stopped)
 - VictoriaLogs not answering for 3 runs in a row (the nightly appdata backup stops it for about a minute)
 
-Each run covers the time since the previous one, so events are not missed or sent twice. If VictoriaLogs is down or a query fails, the window doesn't move forward and the next run catches up. State is kept in `/mnt/user/appdata/log-alerts`.
+Each run covers the time since the previous one, so events are not missed or sent twice. If VictoriaLogs is down or a query fails, the window doesn't move forward and the next run catches up. State is kept in `/mnt/user/appdata/log-alerts`. Each section lists up to 10 events (`MAX_LINES`) before "...and N more", and the whole message is cut at a line end before Discord's 2000-character limit.
 
 Settings are at the top and can be overridden with environment variables, so the User Script wrapper can set the real values without editing the script. Test it without sending anything:
 

@@ -23,7 +23,8 @@ SILENT_COOLDOWN=21600
 VL_DOWN_RUNS="${VL_DOWN_RUNS:-3}"      # alert after this many failed runs in a row (the nightly backup stops VictoriaLogs briefly)
 LAG=60              # seconds; the newest minute is left for the next run so late lines are not missed
 MAX_WINDOW=86400    # after a long outage, look back at most this far
-MAX_LINES=5         # lines listed per section before "and N more"
+MAX_LINES="${MAX_LINES:-10}"   # lines listed per section before "and N more"
+MAX_BODY=1900       # characters; Discord rejects messages over 2000, so longer bodies are cut at a line end
 
 # Kernel and disk messages worth an alert. No quotes or backslashes: it goes inside a LogsQL string.
 DISK_RE='(?i)(i/o error|medium error|uncorrectable|ata[0-9.]+: (exception|failed command|hard resetting link)|md: disk[0-9]+ (read|write) error|smart.*(fail|error)|checksum error|zio.*error)'
@@ -111,12 +112,23 @@ section "UniFi security events" \
   "$RANGE app_name:CEF cef.extension.UNIFIcategory:Security -cef.name:\"Blocked by Firewall\" | sort by (_time)" \
   '"\(t)  \(.["cef.name"] // "?"): \(.["cef.extension.msg"] // "")"' || FAILED="$FAILED security"
 
-# 2. UniFi admin access and setting changes.
-# shellcheck disable=SC2016  # $a and $ignored are jq variables
+# 2. UniFi admin access and setting changes. Logins and setting changes are shortened, e.g.
+#    "claude made a change to  in X Firewall Policy settings. Source IP: ..." -> "claude changed firewall
+#    policy "X" from ..."; any other message is listed as UniFi wrote it.
+# shellcheck disable=SC2016  # $a, $m, $s and $ignored are jq variables
 section "UniFi admin activity" \
   "$RANGE app_name:CEF cef.extension.UNIFIcategory:Audit | sort by (_time)" \
   'select((.["cef.extension.UNIFIadmin"] // "") as $a | any($ignored[]; . == $a) | not)
-   | "\(t)  \(.["cef.name"] // "?"): \(.["cef.extension.msg"] // "")"' || FAILED="$FAILED admin"
+   | (.["cef.extension.msg"] // "") as $m
+   | ($m | sub(" *Source IP: [^ ]+$"; "")
+         | sub(" accessed UniFi Network using the (?<x>[^.]+)\\.$"; " logged in (\(.x))")
+         | sub(" made a change to (?<f>.*?) ?in (?<x>.+) Firewall Policy settings\\.$";
+               " changed \(if .f == "" then "" else .f + " in " end)firewall policy \"\(.x)\"")
+         | sub(" made a change to (?<f>.*?) ?in (?<x>.+) settings\\.$";
+               " changed \(if .f == "" then "" else .f + " in " end)\(.x) settings")) as $s
+   | if $s == $m then "\(t)  \(.["cef.name"] // "?"): \($m)"
+     else "\(t)  \($s)\(if .["cef.extension.src"] then " from " + .["cef.extension.src"] else "" end)" end' \
+  || FAILED="$FAILED admin"
 
 # 3. Disk and kernel I/O errors in the Unraid syslog.
 section "Disk errors on $UNRAID_HOST" \
@@ -160,7 +172,10 @@ if [ ${#SECTIONS[@]} -gt 0 ]; then
   done
   [ "$LEVEL" = info ] && LEVEL=warning
   BODY=$(printf '%s\n\n' "${SECTIONS[@]}")
-  [ ${#BODY} -gt 1900 ] && BODY="${BODY:0:1900}"$'\n'"...(cut; search VictoriaLogs for the rest)"
+  if [ ${#BODY} -gt "$MAX_BODY" ]; then
+    BODY="${BODY:0:$MAX_BODY}"
+    BODY="${BODY%$'\n'*}"$'\n'"...(cut; search VictoriaLogs for the rest)"
+  fi
   send "Log alerts: ${#SECTIONS[@]} item(s)" "$BODY" "$LEVEL"
 fi
 echo "$END" > "$LAST_FILE"
