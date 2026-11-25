@@ -12,6 +12,10 @@ NOTIFY=/usr/local/emhttp/webGui/scripts/notify
 EXPECT_DRIVES=7
 CAP_LIMIT=95
 EXCLUDE_CONTAINERS=""   # space-separated container names that are meant to be stopped
+VL_DIR=/mnt/user/appdata/victoria-logs   # VictoriaLogs data folder; leave the folder out to skip the logging checks
+VL_CAP_GIB=20           # must match -retention.maxDiskSpaceUsageBytes on the victoria-logs container
+GATEWAY_HOST=YOUR_GATEWAY_HOSTNAME   # hostname the UniFi gateway uses in syslog
+LOG_ALERTS_STATE=/mnt/user/appdata/log-alerts   # state folder of log-alerts.sh, if you run it
 
 mkdir -p "$OUTDIR" "$STATE_DIR"
 ISSUES=()
@@ -29,7 +33,7 @@ done < <(docker ps -a --format '{{.Names}} {{.Status}}' 2>/dev/null)
 
 # 1b. Web UIs answering (a container can be Up while the app inside is hung)
 HOSTIP=YOUR_SERVER_IP   # LAN IP of the server
-SERVICES="plex:32400 sonarr:8989 radarr:7878 prowlarr:9696 seerr:5055 tautulli:8181 nzbget:6789 audiobookshelf:13378 npm:81 posterizarr:8000 chaptarr:8789 clonarr:6060 apprise-api:8010 tracearr:3001"
+SERVICES="plex:32400 sonarr:8989 radarr:7878 prowlarr:9696 seerr:5055 tautulli:8181 nzbget:6789 audiobookshelf:13378 npm:81 posterizarr:8000 chaptarr:8789 clonarr:6060 apprise-api:8010 tracearr:3001 victoria-logs:9428"
 DOWN=""
 for SVC in $SERVICES; do
   CODE=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "http://${HOSTIP}:${SVC#*:}/")
@@ -128,6 +132,49 @@ if [ -z "$NEWEST" ]; then
 else
   AGE=$(( ( $(date +%s) - $(date -d "${NEWEST:3:8}" +%s) ) / 86400 ))
   [ "$AGE" -le 9 ] && ok "Dropbox: newest offsite copy is $NEWEST ($AGE days old)" || warn "Dropbox: newest offsite copy is $AGE days old ($NEWEST)"
+fi
+
+# 10. Logging (VictoriaLogs). log-alerts.sh already alerts within the hour when gateway or container
+#     logs stop; this is the monthly safety net, plus the sources and disk use it doesn't watch.
+if [ -d "$VL_DIR" ]; then
+  VL_URL="http://${HOSTIP}:9428"
+  VLB=$(du -sb "$VL_DIR" 2>/dev/null | cut -f1)
+  VLPCT=$(( ${VLB:-0} * 100 / (VL_CAP_GIB * 1073741824) ))
+  VLGIB=$(awk -v b="${VLB:-0}" 'BEGIN {printf "%.1f", b / 1073741824}')
+  if [ "$VLPCT" -ge 90 ]; then
+    warn "VictoriaLogs uses ${VLGIB} GiB of its ${VL_CAP_GIB} GiB cap (${VLPCT}%): the oldest logs are dropped before the 1-year retention"
+  else
+    ok "VictoriaLogs uses ${VLGIB} GiB of its ${VL_CAP_GIB} GiB cap (${VLPCT}%)"
+  fi
+
+  # Each source must have sent something in the last 24 hours.
+  vlcount() {
+    curl -sf -m 30 "$VL_URL/select/logsql/query" --data-urlencode "query=_time:24h $1 | stats count() c" | jq -r '.c // 0' 2>/dev/null
+  }
+  QUIET=""
+  NOANSWER=""
+  for SRC in "UniFi-gateway|hostname:\"$GATEWAY_HOST\"" "Unraid-syslog|hostname:\"$(hostname)\"" "containers|container_name:*" "NPM-access|stream:access"; do
+    N=$(vlcount "${SRC#*|}")
+    if [ -z "$N" ]; then NOANSWER=1; elif [ "$N" = "0" ]; then QUIET="$QUIET ${SRC%%|*}"; fi
+  done
+  if [ -n "$NOANSWER" ]; then
+    warn "VictoriaLogs did not answer a query at $VL_URL"
+  elif [ -z "$QUIET" ]; then
+    ok "Logs arriving from gateway, Unraid, containers and NPM (last 24 h)"
+  else
+    warn "No logs in the last 24 h from:$QUIET"
+  fi
+
+  # log-alerts.sh writes the time of its last successful run; it runs every 5 minutes.
+  if [ -d "$LOG_ALERTS_STATE" ]; then
+    LAST=$(cat "$LOG_ALERTS_STATE/last-run" 2>/dev/null)
+    if [ -z "$LAST" ]; then
+      warn "log-alerts has no last-run record in $LOG_ALERTS_STATE"
+    else
+      AGO=$(( ( $(date +%s) - LAST ) / 60 ))
+      [ "$AGO" -le 60 ] && ok "log-alerts last completed a run $AGO min ago" || warn "log-alerts has not completed a run for $AGO min (User Script stopped, or VictoriaLogs down?)"
+    fi
+  fi
 fi
 
 # Report

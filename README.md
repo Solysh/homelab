@@ -78,8 +78,9 @@ Checks the server and sends one summary. It looks at:
 - Database lock or corruption messages in the Plex logs
 - SMART health, plus CRC error counts compared with last month
 - The age of the newest offsite copy on Dropbox
+- Logging: VictoriaLogs disk use against its size cap (warns at 90%, when the oldest logs start being dropped before the 1-year retention), whether the UniFi gateway, Unraid syslog, containers and NPM all sent logs in the last 24 hours, and whether `log-alerts.sh` completed a run in the last hour. Skipped if `VL_DIR` doesn't exist.
 
-Edit `HOSTIP`, `SERVICES`, `EXPECT_DRIVES` and `CAP_LIMIT` at the top to match your server.
+Edit `HOSTIP`, `SERVICES`, `EXPECT_DRIVES`, `CAP_LIMIT`, `VL_CAP_GIB` and `GATEWAY_HOST` at the top to match your server.
 
 Test it without sending a notification:
 
@@ -96,7 +97,7 @@ Runs every 5 minutes and queries [VictoriaLogs](docs/containers.md#victoria-logs
 - Disk and I/O errors in the Unraid syslog (ATA errors, medium errors, `md` read/write errors, ZFS checksum errors)
 - One client getting 20 or more 401/403 responses from Nginx Proxy Manager within 10 minutes (once per client per hour)
 - The UniFi syslog going silent for 30 minutes, or no container logs for an hour (Vector stopped)
-- VictoriaLogs not answering for 3 runs in a row (the nightly appdata backup stops it for about a minute)
+- VictoriaLogs not answering for 3 runs in a row (so a restart for an update doesn't alert)
 
 Each run covers the time since the previous one, so events are not missed or sent twice. If VictoriaLogs is down or a query fails, the window doesn't move forward and the next run catches up. State is kept in `/mnt/user/appdata/log-alerts`. Each section lists up to 10 events (`MAX_LINES`) before "...and N more", and the whole message is cut at a line end before Discord's 2000-character limit.
 
@@ -145,7 +146,7 @@ Replace these before using the files:
 | --- | --- | --- |
 | `YOUR_SERVER_IP` | `config.yml`, `monthly-health.sh`, `log-alerts.sh`, `docs/containers.md` | LAN IP of your server |
 | `YOUR_APPRISE_KEY` | `log-alerts.sh` | Config key of the apprise-api configuration to notify |
-| `YOUR_GATEWAY_HOSTNAME`, `YOUR_UNRAID_HOSTNAME` | `log-alerts.sh` | Hostnames the UniFi gateway and Unraid use in their syslog |
+| `YOUR_GATEWAY_HOSTNAME`, `YOUR_UNRAID_HOSTNAME` | `log-alerts.sh` (the gateway one also in `monthly-health.sh`) | Hostnames the UniFi gateway and Unraid use in their syslog |
 | `YOUR_PLEX_TOKEN` | `config.yml` | Plex token |
 | `YOUR_TMDB_API_KEY` | `config.yml` | TMDb API key |
 | `YOUR_TAUTULLI_API_KEY` | `config.yml` | Tautulli API key |

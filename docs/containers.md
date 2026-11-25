@@ -254,4 +254,6 @@ Long-term store for all container logs and NPM access logs (from vector), Unraid
 
 Alerts: [`log-alerts.sh`](../README.md#log-alertssh) queries it every 5 minutes and notifies through apprise-api.
 
+Appdata Backup: "Don't stop container" is on and `/mnt/user/appdata/victoria-logs` is excluded, so the nightly backup neither stops it (no syslog gap) nor archives up to 20 GiB of logs every night. The plugin still saves its template and updates it. Log history isn't backed up: a lost drive loses it, while the settings above rebuild the container.
+
 Retention: 1 year or 20 GiB, whichever comes first; the oldest data is dropped first. On the gateway: Settings > Control Plane > Integrations > Activity Logging (SIEM server) pointing at `YOUR_SERVER_IP` port 5514.
