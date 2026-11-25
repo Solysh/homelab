@@ -244,7 +244,7 @@ The config sends to `http://victoria-logs:9428/insert/elasticsearch/` with `VL-S
 
 ### victoria-logs
 
-Long-term store for all container logs and NPM access logs (from vector), Unraid's own syslog (Settings > Syslog Server > remote server `127.0.0.1` port 5514 UDP; Unraid keeps it only in RAM otherwise) and the UniFi gateway's syslog (firewall, port-forward and system events). The gateway itself keeps only about 24 hours and Docker's rotation keeps about 30 MB per container. Search UI at `http://YOUR_SERVER_IP:9428/select/vmui/`, LAN only with no login, so it isn't proxied. Syslog is on 5514 rather than 514 so it never clashes with Unraid's own syslog server.
+Long-term store for all container logs and NPM access logs (from vector), Unraid's own syslog (Settings > Syslog Server > remote server `127.0.0.1` port 5514 UDP; Unraid keeps it only in RAM otherwise) and UniFi syslog: the gateway's (firewall, port-forward and system events) plus the switch's and access points' own logs (link up/down, spanning tree, Wi-Fi association and roaming). The gateway itself keeps only about 24 hours and Docker's rotation keeps about 30 MB per container. Search UI at `http://YOUR_SERVER_IP:9428/select/vmui/`, LAN only with no login, so it isn't proxied. Syslog is on 5514 rather than 514 so it never clashes with Unraid's own syslog server.
 
 | Container path / setting | Value |
 |---|---|
@@ -256,4 +256,4 @@ Alerts: [`log-alerts.sh`](../README.md#log-alertssh) queries it every 5 minutes 
 
 Appdata Backup: "Don't stop container" is on and `/mnt/user/appdata/victoria-logs` is excluded, so the nightly backup neither stops it (no syslog gap) nor archives up to 20 GiB of logs every night. The plugin still saves its template and updates it. Log history isn't backed up: a lost drive loses it, while the settings above rebuild the container.
 
-Retention: 1 year or 20 GiB, whichever comes first; the oldest data is dropped first. On the gateway: Settings > Control Plane > Integrations > Activity Logging (SIEM server) pointing at `YOUR_SERVER_IP` port 5514.
+Retention: 1 year or 20 GiB, whichever comes first; the oldest data is dropped first. In UniFi: Settings > CyberSecure > Traffic Logging > Activity Logging (SIEM server) pointing at `YOUR_SERVER_IP` port 5514, with every content category on except Firewall Default Policy (too noisy). The switch and access points send their logs directly rather than through the gateway, so they need a firewall rule allowing the network-gear VLAN to reach the server on UDP 5514, placed above any rule that blocks that VLAN from the server's network.
