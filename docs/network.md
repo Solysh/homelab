@@ -113,6 +113,6 @@ WireGuard server on the gateway (chosen over Tailscale). Phones connect on deman
 
 ## Console and updates
 
-- The console and the Network app auto-update daily at 3 AM on the Official release channel.
+- The console and the Network app auto-update daily at 4 AM on the Official release channel, after the server's [nightly backup](nightly-schedule.md).
 - Config backups run weekly (Thursday, 2 AM) to local storage and the cloud, keeping 10.
 - The configuration is documented here by hand. UniFi has no readable export, and its backup file is a restore image only.
