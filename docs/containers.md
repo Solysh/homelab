@@ -33,7 +33,7 @@ The 19 Docker containers running on the Unraid server, from their Unraid templat
 | vector | `timberio/vector:latest-alpine` | terranet | none | no |
 | victoria-logs | `victoriametrics/victoria-logs` | terranet | 9428 (web), 5514/udp+tcp (syslog) | no |
 
-Updates: the Appdata Backup plugin updates each container right after backing it up (see [Nightly schedule](nightly-schedule.md)).
+Updates: the Appdata Backup plugin updates containers right after backing them up (see [Nightly schedule](nightly-schedule.md)). Exceptions: it doesn't stop or update [AdGuard Home](#adguard-home), and it neither stops nor archives [victoria-logs](#victoria-logs), though it still updates it.
 
 ## Per container
 
@@ -45,6 +45,8 @@ DNS filtering for the Trusted and VPN networks. On `bond0` with a fixed LAN IP (
 |---|---|
 | `/opt/adguardhome/work` | `/mnt/user/appdata/adguard/workingdir` |
 | `/opt/adguardhome/conf` | `/mnt/user/appdata/adguard/config` |
+
+Appdata Backup: "Skip stopping of container?" is "Yes", so DNS stays up during the nightly run, and "Update container after backup?" is "No". The working folder is excluded; the configuration is still archived.
 
 ### apprise-api
 
@@ -149,7 +151,7 @@ On the host network so local discovery works without extra port mappings. Hardwa
 
 ### posterizarr
 
-Artwork generator. Writes straight into Kometa's asset folder, and runs at 03:00 so new art is ready before Kometa.
+Artwork generator. Writes straight into Kometa's asset folder, and runs at 04:30 so new art is ready before Kometa.
 
 | Container path / variable | Value |
 |---|---|
